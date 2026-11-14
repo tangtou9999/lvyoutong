@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import {
   Compass, Map, Camera, Bookmark, Search, MapPin, Utensils,
   SlidersHorizontal, ChevronRight, LocateFixed, Clock3, ShieldCheck,
-  Plus, Sparkles, Menu, X, Heart, Footprints
+  Plus, Sparkles, X, Heart, Footprints
 } from 'lucide-react'
 
 type Tab = 'nearby' | 'map' | 'saved' | 'me'
