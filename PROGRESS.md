@@ -10,6 +10,8 @@
 - [x] CI 仅在 PR 和手动触发时运行
 - [x] 修复 React/JSX 类型声明缺失
 - [x] 增加首页组件测试（4 项）
+- [x] 增加地图坐标校验测试（3 项）
+- [x] 增加供应商无关的 MapAdapter / MapSearchProvider 类型契约
 - [x] 增加 ESLint 并纳入必需检查
 - [x] 增加 npm audit 高危漏洞门槛
 - [x] 升级存在漏洞的 Vite/Vitest 工具链
@@ -24,16 +26,17 @@
 
 ### 质量门槛现状
 已在 GitHub Actions 实际通过的检查：
-1. npm install
-2. npm audit --audit-level=high
-3. npm run lint
-4. npm test（4 项首页组件测试）
-5. npm run build（TypeScript 检查 + Vite 生产构建）
+1. 生成 package-lock.json 并上传构建 artifact
+2. npm ci
+3. npm audit --audit-level=high
+4. npm run lint
+5. npm test（4 项首页组件 + 3 项坐标测试）
+6. npm run build（TypeScript 检查 + Vite 生产构建）
 
 通过记录：PR #1，commit c11e5da917cb7a176003b19adeefe4d0d4df56f2，run 43654678738。
 
 ### 尚未完成 / 阻塞
-- [ ] 生成并提交 package-lock.json，切换 npm ci，固定依赖树
+- [ ] 从 CI 生成的 lockfile artifact 提取 package-lock.json 并提交，确认 npm ci 可重复安装
 - [ ] 在 GitHub 仓库设置中启用 main 分支保护：要求 PR、要求质量检查通过、禁止直接推送
 - [ ] 验证分支保护确实生效
 - [ ] 端到端浏览器测试
@@ -62,7 +65,7 @@
 - [x] 记录商业许可、测绘资质、境内数据安全、个人定位最小化等上线前核验项
 - [x] 建立供应商无关的地图领域接口：MapAdapter、MapSearchProvider
 - [x] 建立坐标参考系显式标记（WGS84 / GCJ02 / BD09）和坐标范围校验
-- [ ] 对最新地图接口代码运行 CI 并确认全部通过
+- [ ] 对最新地图接口和 npm ci 流程运行 CI 并确认全部通过
 - [ ] 完成运营主体与地图商业许可确认后，才申请/配置真实地图 Key
 
 地图评估依据和供应商条款链接见 MAP_PROVIDER_EVALUATION.md。当前没有真实地图 Key，也没有把静态地图占位冒充为真实地图。
