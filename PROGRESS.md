@@ -12,6 +12,8 @@
 - [x] 补充 @types/react 与 @types/react-dom
 - [x] 修复后的基础 CI 运行通过：依赖安装、TypeScript 检查、Vite 生产构建均成功
 - [x] 增加首页组件测试，覆盖地图占位真实性、主导航、搜索清除和发布说明
+- [x] 增加 ESLint 配置并纳入 CI 必需检查
+- [x] CI 使用 Node.js 22，避免 Node.js 20 运行时弃用告警
 - [x] 将测试与依赖安全审计纳入 CI 工作流
 - [x] 依赖审计发现旧版 Vitest/Vite 工具链存在高危及严重漏洞，已升级至修复版本范围
 - [x] 更新质量门槛文档，明确区分已配置与已验证的检查
@@ -29,12 +31,11 @@ CI 当前计划依次执行：
 3. npm test（首页组件测试）
 4. npm run build（TypeScript 检查 + Vite 生产构建）
 
-首次依赖审计发现 Vitest 2.x / Vite 6.0.x 依赖树中存在 2 项 critical、1 项 high 等级漏洞及 moderate 漏洞；已将 Vitest 升级至 4.1.12 及以上、Vite 升级至 6.4.4 及以上，等待重新审计验证。组件测试与升级后的构建同样必须以 GitHub Actions 最新运行结果为准。
+首次依赖审计发现旧版 Vitest/Vite 依赖树存在 critical/high 漏洞；升级后的一轮 GitHub Actions 已实际通过 npm audit（日志报告 0 vulnerabilities）、4 项组件测试和 TypeScript + Vite 生产构建。随后新增 ESLint 作为必需检查，最新工作流结果仍待验证。
 
 ### 尚未完成 / 阻塞
-- [ ] 获取升级后的 CI 完整结果，确认依赖审计、组件测试和构建全部通过
+- [ ] 获取最新加入 ESLint 后的 CI 完整结果，确认全部质量检查通过
 - [ ] 生成并提交 package-lock.json，改用 npm ci 确保依赖安装可重复
-- [ ] 增加 ESLint 检查
 - [ ] 增加端到端浏览器测试
 - [ ] 在 GitHub 仓库设置中启用 main 分支保护：要求 PR、要求全部必需检查通过、禁止直接推送
 - [ ] 验证分支保护确实生效
