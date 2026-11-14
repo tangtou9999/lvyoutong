@@ -17,6 +17,20 @@ jobs:
     name: Tests, dependency audit, typecheck and production build
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: travel
+          POSTGRES_PASSWORD: travel_ci_password
+          POSTGRES_DB: lvyoutong_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U travel -d lvyoutong_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -34,5 +48,13 @@ jobs:
         run: npm run lint
       - name: Component tests
         run: npm test
+      - name: Validate PostgreSQL migration
+        env:
+          DATABASE_URL: postgresql://travel:travel_ci_password@localhost:5432/lvyoutong_test
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes postgresql-client
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/001_initial_schema.sql
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "SELECT COUNT(*) = 9 AS expected_core_tables FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';" | grep -q t
       - name: Type check and production build
         run: npm run build
