@@ -106,7 +106,7 @@
 - [x] 忽略客户端 userId 等非白名单字段，身份只取认证上下文
 - [x] 对嵌套价格数据做结构校验，避免畸形 JSON 触发未处理异常
 - [x] 为 API handler 增加自动化测试
-- [ ] 完成最新 API 代码的 CI 复验
+- [x] 最新 API 代码通过 CI 复验（run 43658457269）
 - [ ] 实现 PostgreSQL repository、事务和真实数据库连接
 - [ ] 接入正式身份认证；当前 authenticate 是由宿主注入的接口，不是现成登录系统
 - [ ] 选择并部署 API 运行时；当前是可测试 handler，不是已运行的服务器
@@ -120,7 +120,7 @@
 - [x] 同一幂等键提交不同内容时拒绝，API 返回 HTTP 409
 - [x] 事务异常自动回滚并释放连接
 - [x] 为 repository 增加自动化测试
-- [ ] 等待本轮 CI 全套质量门槛复验
+- [x] PostgreSQL repository 测试通过 CI（run 43658457269）
 - [ ] 选择 PostgreSQL 驱动并连接真实数据库；当前 repository 通过注入的 Pool 接口工作，未安装驱动或部署数据库
 - [ ] 增加媒体证据存储、审核状态和奖励账本的服务端工作流
 
@@ -129,7 +129,7 @@
 - [x] 定位到 CI 失败原因：初始 PostgreSQL migration 重复创建 `api_idempotency_keys`，导致 migration 在第 178 行失败
 - [x] 删除重复的第二段建表语句
 - [x] 修正核心表数量断言：当前 schema 共 10 张核心表
-- [ ] 等待重新运行 CI：安全审计、Lint、组件测试、PostgreSQL migration、类型检查、生产构建和 Pages 资源路径检查全部通过后，才允许部署
+- [x] 最新修复提交的全套质量门槛通过（run 43658457269，commit 367be48ef235d56fbecab6ce023996eec2a37e62）
 
 
 ### 本轮质量复验与 API 防护（2026-11-15）
@@ -137,7 +137,7 @@
 - [x] PostgreSQL 重复建表缺陷已修复；本轮全套质量门槛通过
 - [x] API 对身份验证服务异常返回受控 503，不再向上抛出未处理异常
 - [x] 体验提交请求体限制为 64 KB，超限返回 413
-- [ ] 对新增 API 防护测试运行 CI
+- [x] API 认证故障隔离与 64 KB 请求体限制测试通过 CI（run 43658457269）
 - [ ] 真实 PostgreSQL 驱动、运行时、认证和部署仍未接入
 - [ ] PR #1 保持 Draft；CI 通过不代表完整产品已达到发布验收
 
@@ -145,4 +145,12 @@
 ### 数据库约束集成验证（2026-11-15）
 - [x] 新增真实 PostgreSQL SQL smoke test：外键关联、幂等键唯一、评分范围、经纬度范围、已审核地点筛选
 - [x] 测试全部放在事务中并最终回滚，不污染 CI 数据库
-- [ ] 等待新提交 CI 全套质量门槛通过
+- [x] PostgreSQL 约束集成 smoke test 通过 CI（run 43658457269）
+
+
+### 最新质量门槛结果（2026-11-15）
+- [x] run 43658457269 / commit 367be48ef235d56fbecab6ce023996eec2a37e62：npm ci、安全审计、ESLint、Vitest、PostgreSQL 16 迁移、PostgreSQL 行为级 smoke test、TypeScript、Vite build、GitHub Pages 资源路径检查全部成功
+- [x] 新增 API 身份验证故障隔离和 64 KB 请求体上限；对应自动化测试包含在本次通过的 Vitest 测试集中
+- [x] GitHub Pages 改为仅接受显式版本标签 `v*` 触发部署；PR、普通分支提交不会自动发布
+- [ ] PR #1 仍为 Draft，未合并；完整产品尚未通过端到端和生产验收，因此不发布
+- [ ] GitHub Actions 账号邮件通知偏好无法通过当前仓库权限修改；工作流已修正为避免开发分支 push 触发重复运行
