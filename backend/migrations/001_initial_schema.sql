@@ -8,6 +8,7 @@ CREATE TYPE account_status AS ENUM ('active', 'suspended', 'deleted');
 CREATE TYPE place_kind AS ENUM ('fixed_shop', 'mobile_stall');
 CREATE TYPE place_status AS ENUM ('candidate', 'active', 'temporarily_closed', 'closed', 'merged');
 CREATE TYPE moderation_status AS ENUM ('pending', 'approved', 'rejected', 'appealed');
+CREATE TYPE media_redaction_status AS ENUM ('not_required', 'pending', 'redacted', 'failed');
 CREATE TYPE contribution_status AS ENUM ('draft', 'submitted', 'under_review', 'published', 'hidden', 'rejected');
 CREATE TYPE evidence_kind AS ENUM ('on_site_photo', 'purchase_proof', 'menu_or_price', 'user_statement');
 CREATE TYPE evidence_status AS ENUM ('unverified', 'verified', 'rejected');
@@ -91,7 +92,7 @@ CREATE TABLE media_assets (
   captured_at timestamptz,
   uploaded_at timestamptz NOT NULL DEFAULT now(),
   content_sha256 char(64),
-  redaction_status moderation_status NOT NULL DEFAULT 'pending',
+  redaction_status media_redaction_status NOT NULL DEFAULT 'pending',
   moderation_status moderation_status NOT NULL DEFAULT 'pending'
 );
 
