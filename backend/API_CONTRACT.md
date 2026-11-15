@@ -1,6 +1,6 @@
 # Backend API contract (design draft)
 
-This is an API contract for the next implementation stage, not a running server.
+This API contract is partially implemented by a framework-neutral Request/Response handler in src/server/api.ts. It is not a running server: the host must provide authentication and a PostgreSQL-backed repository.
 
 ## Rules
 - All write endpoints require authenticated identity and server-side authorization.
@@ -52,6 +52,11 @@ This is an API contract for the next implementation stage, not a running server.
 - Evidence association and moderation case creation are atomic.
 - Reward ledger posting is a separate transaction after eligibility and fraud checks; never update a balance directly.
 - Place merge and location history changes must preserve historical references and write an audit event.
+
+## Current implementation boundary
+- Implemented handler routes: health, public place list, authenticated experience submission.
+- Automated tests cover authentication, idempotency-key requirement, input validation, identity trust boundary, and safe errors.
+- Authentication and repository are dependency-injected; no production identity provider or PostgreSQL repository is connected.
 
 ## Not implemented yet
 No API server, authentication provider, database connection, object storage, or production deployment exists in the current repository.
