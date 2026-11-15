@@ -120,6 +120,31 @@ describe('HTTP API handler', () => {
     expect(repository.createExperience).not.toHaveBeenCalled()
   })
 
+
+  it('returns a controlled service error when authentication infrastructure fails', async () => {
+    const repository = makeRepository()
+    const handle = createApi({ repository, authenticate: vi.fn().mockRejectedValue(new Error('auth unavailable')) })
+    const response = await handle(new Request('https://example.test/api/v1/experiences', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'idempotency-key': 'try-auth-down' },
+      body: JSON.stringify(validDraft),
+    }))
+    expect(response.status).toBe(503)
+    expect(repository.createExperience).not.toHaveBeenCalled()
+  })
+
+  it('rejects oversized request bodies before parsing or persistence', async () => {
+    const repository = makeRepository()
+    const handle = createApi({ repository, authenticate: vi.fn().mockResolvedValue({ id: 'trusted-user-1' }) })
+    const response = await handle(new Request('https://example.test/api/v1/experiences', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'idempotency-key': 'try-too-large' },
+      body: JSON.stringify({ ...validDraft, body: 'a'.repeat(70 * 1024) }),
+    }))
+    expect(response.status).toBe(413)
+    expect(repository.createExperience).not.toHaveBeenCalled()
+  })
+
   it('returns a safe not-found response for unknown routes', async () => {
     const handle = createApi({ repository: makeRepository(), authenticate: vi.fn() })
     const response = await handle(new Request('https://example.test/api/v1/private'))
