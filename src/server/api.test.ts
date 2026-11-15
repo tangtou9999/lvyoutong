@@ -87,6 +87,18 @@ describe('HTTP API handler', () => {
     })
   })
 
+  it('strips untrusted fields and rejects malformed nested price objects', async () => {
+    const repository = makeRepository()
+    const handle = createApi({ repository, authenticate: vi.fn().mockResolvedValue({ id: 'trusted-user-1' }) })
+    const response = await handle(new Request('https://example.test/api/v1/experiences', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', 'idempotency-key': 'try-5' },
+      body: JSON.stringify({ ...validDraft, role: 'admin', prices: [{ productName: 9 }] }),
+    }))
+    expect(response.status).toBe(400)
+    expect(repository.createExperience).not.toHaveBeenCalled()
+  })
+
   it('rejects invalid ratings and malformed JSON', async () => {
     const repository = makeRepository()
     const handle = createApi({
