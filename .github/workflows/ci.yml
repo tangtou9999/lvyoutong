@@ -59,6 +59,7 @@ jobs:
           sudo apt-get install --yes postgresql-client
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/migrations/001_initial_schema.sql
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "SELECT COUNT(*) = 10 AS expected_core_tables FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';" | grep -q t
+          psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f backend/tests/001_schema_smoke.sql
       - name: Type check and production build
         run: npm run build
       - name: Verify GitHub Pages asset base path
