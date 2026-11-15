@@ -2,6 +2,7 @@ import {
   validateExperienceDraft,
   type ExperienceDraft,
 } from '../domain/experience'
+import { IdempotencyConflictError } from './postgres-repository'
 
 export interface AuthenticatedUser {
   id: string
@@ -149,7 +150,10 @@ export function createApi({ repository, authenticate }: ApiDependencies) {
           draft,
         })
         return json({ id: result.id, replayed: result.replayed }, result.replayed ? 200 : 201)
-      } catch {
+      } catch (error) {
+        if (error instanceof IdempotencyConflictError) {
+          return json({ error: error.message }, 409)
+        }
         return json({ error: '体验记录暂时无法保存，请稍后重试' }, 503)
       }
     }
