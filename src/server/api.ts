@@ -120,7 +120,12 @@ export function createApi({ repository, authenticate }: ApiDependencies) {
     }
 
     if (request.method === 'POST' && path === '/api/v1/experiences') {
-      const user = await authenticate(request)
+      let user: AuthenticatedUser | null
+      try {
+        user = await authenticate(request)
+      } catch {
+        return json({ error: '身份验证服务暂时不可用，请稍后重试' }, 503)
+      }
       if (!user) return json({ error: '请先登录后再提交体验' }, 401)
 
       const idempotencyKey = request.headers.get('idempotency-key')?.trim()
@@ -130,7 +135,11 @@ export function createApi({ repository, authenticate }: ApiDependencies) {
 
       let body: unknown
       try {
-        body = await request.json()
+        const rawBody = await request.text()
+        if (new TextEncoder().encode(rawBody).byteLength > 64 * 1024) {
+          return json({ error: '请求内容过大，单次最多 64 KB' }, 413)
+        }
+        body = JSON.parse(rawBody)
       } catch {
         return json({ error: '请求内容不是有效 JSON' }, 400)
       }
