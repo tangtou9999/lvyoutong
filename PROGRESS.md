@@ -111,3 +111,15 @@
 - [ ] 接入正式身份认证；当前 authenticate 是由宿主注入的接口，不是现成登录系统
 - [ ] 选择并部署 API 运行时；当前是可测试 handler，不是已运行的服务器
 - [ ] 增加端到端与安全测试
+
+
+### PostgreSQL repository（2026-11-15）
+- [x] 实现 PostgreSQL 地点读取：只返回 active 且 moderation_status=approved 的地点
+- [x] 实现体验记录事务写入：贡献记录、商品档案、价格观察和幂等结果同一事务提交
+- [x] 新增 api_idempotency_keys 表，按用户+幂等键唯一约束，避免重试重复建单
+- [x] 同一幂等键提交不同内容时拒绝，API 返回 HTTP 409
+- [x] 事务异常自动回滚并释放连接
+- [x] 为 repository 增加自动化测试
+- [ ] 等待本轮 CI 全套质量门槛复验
+- [ ] 选择 PostgreSQL 驱动并连接真实数据库；当前 repository 通过注入的 Pool 接口工作，未安装驱动或部署数据库
+- [ ] 增加媒体证据存储、审核状态和奖励账本的服务端工作流
