@@ -135,11 +135,28 @@ export function createApi({ repository, authenticate }: ApiDependencies) {
 
       let body: unknown
       try {
-        const rawBody = await request.text()
-        if (new TextEncoder().encode(rawBody).byteLength > 64 * 1024) {
-          return json({ error: '请求内容过大，单次最多 64 KB' }, 413)
+        const reader = request.body?.getReader()
+        const chunks: Uint8Array[] = []
+        let totalBytes = 0
+        if (reader) {
+          while (true) {
+            const { done, value } = await reader.read()
+            if (done) break
+            totalBytes += value.byteLength
+            if (totalBytes > 64 * 1024) {
+              await reader.cancel()
+              return json({ error: '请求内容过大，单次最多 64 KB' }, 413)
+            }
+            chunks.push(value)
+          }
         }
-        body = JSON.parse(rawBody)
+        const bytes = new Uint8Array(totalBytes)
+        let offset = 0
+        for (const chunk of chunks) {
+          bytes.set(chunk, offset)
+          offset += chunk.byteLength
+        }
+        body = JSON.parse(new TextDecoder().decode(bytes))
       } catch {
         return json({ error: '请求内容不是有效 JSON' }, 400)
       }
