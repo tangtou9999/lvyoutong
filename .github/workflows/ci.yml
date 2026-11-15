@@ -1,6 +1,8 @@
 name: CI
 
 on:
+  push:
+    branches: [main]
   pull_request:
     branches: [main]
   workflow_dispatch:
@@ -58,3 +60,25 @@ jobs:
           psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -c "SELECT COUNT(*) = 9 AS expected_core_tables FROM information_schema.tables WHERE table_schema = 'public' AND table_type = 'BASE TABLE';" | grep -q t
       - name: Type check and production build
         run: npm run build
+      - name: Verify GitHub Pages asset base path
+        run: grep -q 'src="/lvyoutong/assets/' dist/index.html
+      - name: Upload GitHub Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
