@@ -41,11 +41,13 @@ describe('PostgresTravelRepository', () => {
 
   it('writes contribution, prices and idempotency result in one transaction', async () => {
     const { pool, queries, release } = createPool([
+      { rows: [] }, // BEGIN
       { rows: [{ id: 'claim-1' }] },
       { rows: [{ id: 'contribution-1' }] },
       { rows: [{ id: 'product-1' }] },
-      { rows: [] },
-      { rows: [] },
+      { rows: [] }, // price observation
+      { rows: [] }, // persist contribution id on idempotency key
+      { rows: [] }, // COMMIT
     ])
     const repository = new PostgresTravelRepository(pool)
     const result = await repository.createExperience({
@@ -73,7 +75,8 @@ describe('PostgresTravelRepository', () => {
 
   it('rejects reuse of an idempotency key with different content', async () => {
     const { pool, queries } = createPool([
-      { rows: [] },
+      { rows: [] }, // BEGIN
+      { rows: [] }, // idempotency key already exists
       { rows: [{ request_hash: 'deliberately-not-matching', contribution_id: 'contribution-1' }] },
     ])
     const repository = new PostgresTravelRepository(pool)
@@ -88,8 +91,9 @@ describe('PostgresTravelRepository', () => {
 
   it('rolls back and releases the connection on failure', async () => {
     const { pool, queries, release } = createPool([
+      { rows: [] }, // BEGIN
       { rows: [{ id: 'claim-1' }] },
-      { rows: [] },
+      { rows: [] }, // missing contribution ID
     ])
     const repository = new PostgresTravelRepository(pool)
     await expect(repository.createExperience({
