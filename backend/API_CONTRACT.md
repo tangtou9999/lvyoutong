@@ -60,3 +60,10 @@ This API contract is partially implemented by a framework-neutral Request/Respon
 
 ## Not implemented yet
 No API server, authentication provider, database connection, object storage, or production deployment exists in the current repository.
+
+
+## PostgreSQL repository implementation status
+- `src/server/postgres-repository.ts` implements published-place reads and transactional experience writes using an injected PostgreSQL-compatible pool.
+- The transaction writes the contribution, optional product/price observations, and idempotency result together.
+- `api_idempotency_keys` uniquely scopes keys to a user. Reusing a key with different content returns HTTP 409.
+- The runtime still must supply a PostgreSQL driver/pool and an authentication provider. No database instance, credentials, migrations runner, or deployed API server is configured.
