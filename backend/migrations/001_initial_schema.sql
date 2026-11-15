@@ -164,15 +164,3 @@ CREATE TABLE api_idempotency_keys (
   created_at timestamptz NOT NULL DEFAULT now(),
   UNIQUE (user_id, idempotency_key)
 );
-
-
--- Request-level idempotency: prevents duplicate experience writes on retries.
-CREATE TABLE api_idempotency_keys (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id uuid NOT NULL REFERENCES app_users(id),
-  idempotency_key varchar(160) NOT NULL,
-  request_hash char(64) NOT NULL,
-  contribution_id uuid REFERENCES contributions(id),
-  created_at timestamptz NOT NULL DEFAULT now(),
-  UNIQUE (user_id, idempotency_key)
-);
