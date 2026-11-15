@@ -46,7 +46,7 @@ export function findPotentialPlaceDuplicates(
   const normalizedName = normalizePlaceName(candidate.name)
   if (!normalizedName || !Number.isFinite(radiusMeters) || radiusMeters < 0) return []
 
-  return existing.flatMap((place) => {
+  return existing.flatMap<PotentialDuplicate>((place) => {
     if (place.id === candidate.id) return []
     if (place.category !== candidate.category) return []
     if (normalizePlaceName(place.name) !== normalizedName) return []
