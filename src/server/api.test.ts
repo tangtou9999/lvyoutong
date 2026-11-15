@@ -133,14 +133,24 @@ describe('HTTP API handler', () => {
     expect(repository.createExperience).not.toHaveBeenCalled()
   })
 
-  it('rejects oversized request bodies before parsing or persistence', async () => {
+  it('rejects oversized streamed request bodies before full buffering or persistence', async () => {
     const repository = makeRepository()
     const handle = createApi({ repository, authenticate: vi.fn().mockResolvedValue({ id: 'trusted-user-1' }) })
+    const oversized = JSON.stringify({ ...validDraft, body: 'a'.repeat(70 * 1024) })
+    const chunks = [oversized.slice(0, 32 * 1024), oversized.slice(32 * 1024)]
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        for (const chunk of chunks) controller.enqueue(new TextEncoder().encode(chunk))
+        controller.close()
+      },
+    })
     const response = await handle(new Request('https://example.test/api/v1/experiences', {
       method: 'POST',
       headers: { 'content-type': 'application/json', 'idempotency-key': 'try-too-large' },
-      body: JSON.stringify({ ...validDraft, body: 'a'.repeat(70 * 1024) }),
-    }))
+      body,
+      // A streaming request must explicitly declare its duplex mode in Node's Fetch implementation.
+      duplex: 'half',
+    } as RequestInit))
     expect(response.status).toBe(413)
     expect(repository.createExperience).not.toHaveBeenCalled()
   })
