@@ -56,15 +56,44 @@ function parseLimit(value: string | null): number {
 function isExperienceDraft(value: unknown): value is ExperienceDraft {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return false
   const draft = value as Record<string, unknown>
-  return typeof draft.placeId === 'string'
-    && typeof draft.experiencedAt === 'string'
-    && (draft.body === undefined || typeof draft.body === 'string')
-    && (draft.ratings === undefined || (
-      typeof draft.ratings === 'object'
-      && draft.ratings !== null
-      && !Array.isArray(draft.ratings)
-    ))
-    && (draft.prices === undefined || Array.isArray(draft.prices))
+  if (typeof draft.placeId !== 'string' || typeof draft.experiencedAt !== 'string') return false
+  if (draft.body !== undefined && typeof draft.body !== 'string') return false
+  if (draft.worthATrip !== undefined && typeof draft.worthATrip !== 'boolean') return false
+  if (draft.wouldReturn !== undefined && typeof draft.wouldReturn !== 'boolean') return false
+
+  if (draft.ratings !== undefined) {
+    if (!draft.ratings || typeof draft.ratings !== 'object' || Array.isArray(draft.ratings)) return false
+    if (Object.values(draft.ratings).some((score) => typeof score !== 'number')) return false
+  }
+
+  if (draft.prices !== undefined) {
+    if (!Array.isArray(draft.prices)) return false
+    const validPrices = draft.prices.every((price) => {
+      if (!price || typeof price !== 'object' || Array.isArray(price)) return false
+      const item = price as Record<string, unknown>
+      return typeof item.productName === 'string'
+        && typeof item.specification === 'string'
+        && typeof item.unit === 'string'
+        && typeof item.amountMinor === 'number'
+        && typeof item.currency === 'string'
+        && (item.kind === 'menu_price' || item.kind === 'paid_price')
+    })
+    if (!validPrices) return false
+  }
+
+  return true
+}
+
+function pickExperienceDraft(value: ExperienceDraft): ExperienceDraft {
+  return {
+    placeId: value.placeId,
+    experiencedAt: value.experiencedAt,
+    ...(value.body !== undefined ? { body: value.body } : {}),
+    ...(value.ratings !== undefined ? { ratings: value.ratings } : {}),
+    ...(value.worthATrip !== undefined ? { worthATrip: value.worthATrip } : {}),
+    ...(value.wouldReturn !== undefined ? { wouldReturn: value.wouldReturn } : {}),
+    ...(value.prices !== undefined ? { prices: value.prices } : {}),
+  }
 }
 
 export function createApi({ repository, authenticate }: ApiDependencies) {
@@ -109,14 +138,15 @@ export function createApi({ repository, authenticate }: ApiDependencies) {
         return json({ error: '体验记录格式无效' }, 400)
       }
 
-      const errors = validateExperienceDraft(body)
+      const draft = pickExperienceDraft(body)
+      const errors = validateExperienceDraft(draft)
       if (errors.length > 0) return json({ error: '体验记录未通过校验', details: errors }, 422)
 
       try {
         const result = await repository.createExperience({
           userId: user.id,
           idempotencyKey,
-          draft: body,
+          draft,
         })
         return json({ id: result.id, replayed: result.replayed }, result.replayed ? 200 : 201)
       } catch {
