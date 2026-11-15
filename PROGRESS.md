@@ -123,3 +123,10 @@
 - [ ] 等待本轮 CI 全套质量门槛复验
 - [ ] 选择 PostgreSQL 驱动并连接真实数据库；当前 repository 通过注入的 Pool 接口工作，未安装驱动或部署数据库
 - [ ] 增加媒体证据存储、审核状态和奖励账本的服务端工作流
+
+
+### CI failure correction（2026-11-15）
+- [x] 定位到 CI 失败原因：初始 PostgreSQL migration 重复创建 `api_idempotency_keys`，导致 migration 在第 178 行失败
+- [x] 删除重复的第二段建表语句
+- [x] 修正核心表数量断言：当前 schema 共 10 张核心表
+- [ ] 等待重新运行 CI：安全审计、Lint、组件测试、PostgreSQL migration、类型检查、生产构建和 Pages 资源路径检查全部通过后，才允许部署
